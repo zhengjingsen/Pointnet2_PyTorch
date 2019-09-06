@@ -30,7 +30,7 @@ def _load_data_file(name):
 
 class ModelNet40Cls(data.Dataset):
     def __init__(self, num_points, transforms=None, train=True, download=True):
-        super().__init__()
+        super(ModelNet40Cls, self).__init__()
 
         self.transforms = transforms
 

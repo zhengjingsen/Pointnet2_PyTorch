@@ -30,7 +30,7 @@ def _load_data_file(name):
 
 class Indoor3DSemSeg(data.Dataset):
     def __init__(self, num_points, train=True, download=True, data_precent=1.0):
-        super().__init__()
+        super(Indoor3DSemSeg, self).__init__()
         self.data_precent = data_precent
         self.folder = "indoor3d_sem_seg_hdf5_data"
         self.data_dir = os.path.join(BASE_DIR, self.folder)

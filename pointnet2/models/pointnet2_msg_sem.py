@@ -56,8 +56,8 @@ class Pointnet2MSG(nn.Module):
         c_in = input_channels
         self.SA_modules.append(
             PointnetSAModuleMSG(
-                npoint=1024,
-                radii=[0.05, 0.1],
+                npoint=4096,
+                radii=[0.2, 0.4],
                 nsamples=[16, 32],
                 mlps=[[c_in, 16, 16, 32], [c_in, 32, 32, 64]],
                 use_xyz=use_xyz,
@@ -68,8 +68,8 @@ class Pointnet2MSG(nn.Module):
         c_in = c_out_0
         self.SA_modules.append(
             PointnetSAModuleMSG(
-                npoint=256,
-                radii=[0.1, 0.2],
+                npoint=1024,
+                radii=[0.4, 0.8],
                 nsamples=[16, 32],
                 mlps=[[c_in, 64, 64, 128], [c_in, 64, 96, 128]],
                 use_xyz=use_xyz,
@@ -80,8 +80,8 @@ class Pointnet2MSG(nn.Module):
         c_in = c_out_1
         self.SA_modules.append(
             PointnetSAModuleMSG(
-                npoint=64,
-                radii=[0.2, 0.4],
+                npoint=256,
+                radii=[0.8, 1.6],
                 nsamples=[16, 32],
                 mlps=[[c_in, 128, 196, 256], [c_in, 128, 196, 256]],
                 use_xyz=use_xyz,
@@ -92,8 +92,8 @@ class Pointnet2MSG(nn.Module):
         c_in = c_out_2
         self.SA_modules.append(
             PointnetSAModuleMSG(
-                npoint=16,
-                radii=[0.4, 0.8],
+                npoint=64,
+                radii=[1.6, 3.2],
                 nsamples=[16, 32],
                 mlps=[[c_in, 256, 256, 512], [c_in, 256, 384, 512]],
                 use_xyz=use_xyz,
