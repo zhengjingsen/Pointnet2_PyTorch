@@ -52,7 +52,10 @@ class WaymoDatasetLoader(data.Dataset):
         self.labels = label_batchlist
 
     def __getitem__(self, idx):
-        pt_idxs = np.random.choice(self.points[idx].shape[0], self.num_points, replace=False)
+        if self.num_points is not None:
+            pt_idxs = np.random.choice(self.points[idx].shape[0], self.num_points, replace=False)
+        else:
+            pt_idxs = np.arange(self.points[idx].shape[0])
 
         current_points = torch.from_numpy(self.points[idx][pt_idxs, :].copy()).type(
             torch.FloatTensor

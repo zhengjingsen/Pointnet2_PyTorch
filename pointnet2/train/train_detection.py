@@ -85,13 +85,13 @@ parser.add_argument(
 parser.add_argument(
     "-test_data_path",
     type=str,
-    default="/media/jingsen/3aa94184-0fba-45c2-8122-335db3d9776b/Dataset/waymo/extract_data/label_points/segment-16102220208346880_1420_000_1440_000_with_camera_labels/test",
+    default="/media/jingsen/3aa94184-0fba-45c2-8122-335db3d9776b/Dataset/waymo/extract_data_bbox/label_points/segment-16102220208346880_1420_000_1440_000_with_camera_labels/test",
     help="test data path"
 )
 parser.add_argument(
     "-train_data_path",
     type=str,
-    default="/media/jingsen/3aa94184-0fba-45c2-8122-335db3d9776b/Dataset/waymo/extract_data/label_points/segment-16102220208346880_1420_000_1440_000_with_camera_labels/train",
+    default="/media/jingsen/3aa94184-0fba-45c2-8122-335db3d9776b/Dataset/waymo/extract_data_bbox/label_points/segment-16102220208346880_1420_000_1440_000_with_camera_labels/train",
     help="train data path"
 )
 parser.add_argument("--visdom-port", type=int, default=8097)

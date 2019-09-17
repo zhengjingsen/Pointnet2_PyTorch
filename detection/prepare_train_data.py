@@ -18,7 +18,7 @@ parser.add_argument('--segment_name',
 parser.add_argument('--radius', type=float, default=1.0, help='radius to label points')
 parser.add_argument('--nsample', type=int, default=300, help='max sample num for each object')
 parser.add_argument('--save_path',
-                    default='/media/jingsen/3aa94184-0fba-45c2-8122-335db3d9776b/Dataset/waymo/extract_data',
+                    default='/media/jingsen/3aa94184-0fba-45c2-8122-335db3d9776b/Dataset/waymo/extract_data_bbox',
                     help='path to save label points')
 
 args = parser.parse_args()
@@ -61,6 +61,32 @@ def extract_label_points(pcd_file, label_file):
 
     return points, colors, points_label
 
+def extract_bbox_label_points(pcd_file, label_file):
+    points = np.asarray(open3d.io.read_point_cloud(pcd_file).points)
+    colors = np.zeros(points.shape, dtype=int)
+    points_label = np.zeros(points.shape[0], dtype=np.uint8)
+
+    labels = load_label_file(label_file)
+
+    for label in labels:
+        if (int(label[0]) == 1):           #vehicle
+            center = np.array([float(label[2]), float(label[3]), float(label[4])])
+            size = np.array([float(label[5]), float(label[6]), float(label[7])])
+            heading = float(label[8])
+            transform = np.array([[np.cos(heading), np.sin(heading), 0],
+                                 [-np.sin(heading), np.cos(heading), 0],
+                                 [0, 0, 1]])
+
+            points_tmp = np.dot(points - center, transform)
+            idx = (points_tmp[:, 0] < size[0] * 0.51) & (points_tmp[:, 0] > -size[0] * 0.51) & \
+                  (points_tmp[:, 1] < size[1] * 0.51) & (points_tmp[:, 1] > -size[1] * 0.51) & \
+                  (points_tmp[:, 2] < size[2] * 0.52) & (points_tmp[:, 2] > -size[2] * 0.52)
+
+            points_label[idx] = 1
+            colors[idx] = [255, 0, 0]
+
+    return points, colors, points_label
+
 def show_color_points(points, colors):
     point_cloud = open3d.PointCloud()
     point_cloud.points = open3d.Vector3dVector(np.array(points))
@@ -84,11 +110,12 @@ def main():
         file_prefix = pcd.split('.')[0]
         pcd_file = pcd_path + '/' + file_prefix + '.pcd'
         label_file = label_path + '/' + file_prefix + '.txt'
-        points, colors, points_label = extract_label_points(pcd_file, label_file)
-        points_label = np.expand_dims(points_label, axis=1)
-        points_with_label = np.concatenate((points, points_label), axis=1)
-        points_with_label.tofile(bin_path + '/' + file_prefix + '.bin')
-        # show_color_points(points, colors)
+        # points, colors, points_label = extract_label_points(pcd_file, label_file)
+        points, colors, points_label = extract_bbox_label_points(pcd_file, label_file)
+        # points_label = np.expand_dims(points_label, axis=1)
+        # points_with_label = np.concatenate((points, points_label), axis=1)
+        # points_with_label.tofile(bin_path + '/' + file_prefix + '.bin')
+        show_color_points(points, colors)
 
 
 if __name__ == '__main__':
