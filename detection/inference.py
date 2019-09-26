@@ -72,7 +72,7 @@ def show_two_label_points(points, labels):
 if __name__ == "__main__":
     args = parser.parse_args()
 
-    test_set = WaymoDatasetLoader(args.train_data_path, None)
+    test_set = WaymoDatasetLoader(args.test_data_path, args.num_points)
     test_loader = DataLoader(
         test_set,
         batch_size=args.batch_size,

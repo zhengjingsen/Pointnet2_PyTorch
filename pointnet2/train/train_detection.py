@@ -21,6 +21,8 @@ import pprint
 import os.path as osp
 import os
 import argparse
+import torch
+import pointnet2.utils.focal_loss as focal_loss
 
 from pointnet2.models import Pointnet2SemMSG as Pointnet
 from pointnet2.models.pointnet2_msg_sem import model_fn_decorator
@@ -29,7 +31,7 @@ from detection.waymo_dataset_loader import WaymoDatasetLoader
 
 parser = argparse.ArgumentParser(description="Arg parser")
 parser.add_argument(
-    "-batch_size", type=int, default=8, help="Batch size [default: 32]"
+    "-batch_size", type=int, default=6, help="Batch size [default: 32]"
 )
 parser.add_argument(
     "-num_points",
@@ -157,7 +159,9 @@ if __name__ == "__main__":
 
     it = max(it, 0)  # for the initialize value of `trainer.train`
 
-    model_fn = model_fn_decorator(nn.CrossEntropyLoss())
+    # model_fn = model_fn_decorator(nn.CrossEntropyLoss())
+    model_fn = model_fn_decorator(focal_loss.FocalLoss(class_num=2, alpha=torch.cuda.FloatTensor([1.0, 3.0]), \
+                                                       gamma=2))
 
     if args.visdom:
         viz = pt_utils.VisdomViz(port=args.visdom_port)

@@ -16,3 +16,4 @@ pointnet2.egg-info/
 .tox/
 .mypy_cache
 **/*.pyc
+.idea/
