@@ -9,7 +9,7 @@ import torch
 import torch.nn as nn
 from collections import namedtuple
 from torch_scatter import scatter_max
-import config
+import pointnet2.models.config as config
 
 class conv1d(nn.Module):
     def __init__(self, in_ch, out_ch, activation=True):
@@ -141,6 +141,27 @@ class PointPillarsSem(nn.Module):
         score = self.conv1d_3(point)
 
         return score
+
+def model_fn_decorator(criterion):
+    ModelReturn = namedtuple("ModelReturn", ["preds", "loss", "acc"])
+
+    def model_fn(model, data, epoch=0, eval=False):
+        with torch.set_grad_enabled(not eval):
+            batch_ids, points, labels, batch_size = data
+
+            points = points.to("cuda", non_blocking=True).transpose(dim0=0, dim1=1)
+            labels = labels.to("cuda", non_blocking=True)
+            batch_ids = batch_ids.to("cuda", non_blocking=True).int()
+
+            preds = model(batch_ids, points, batch_size)
+            loss = criterion(preds.view(labels.numel(), -1), labels.view(-1))
+
+            _, classes = torch.max(preds, -1)
+            acc = (classes == labels).float().sum() / labels.numel()
+
+        return ModelReturn(preds, loss, {"acc": acc.item(), "loss": loss.item()})
+
+    return model_fn
 
 if __name__ == "__main__":
     net = PointPillarsSem(2, 1)
