@@ -114,10 +114,6 @@ class DatasetLoader:
         self.points = data_batchlist
         self.labels = label_batchlist
 
-    def __iter__(self):
-        self.cur_it = 0
-        return self
-
     def data_augment(self, points, labels):
         # 1) No ring information. Hence skipping ring based augmentation
 
@@ -175,6 +171,12 @@ class DatasetLoader:
 
         return data, label
 
+    def __iter__(self):
+        self.cur_it = 0
+        self.index = np.arange(self.data_size)
+        np.random.shuffle(self.index)
+        return self
+
     def __next__(self):
         if self.cur_it >= 0:
             batch_ids = []
@@ -182,12 +184,10 @@ class DatasetLoader:
             labels_batch = []
 
             for i in range(self.batch_size):
-                ++self.cur_it
-
                 if self.cur_it < self.data_size:
-                    idx = self.cur_it
+                    idx = self.index[self.cur_it]
                 else:
-                    idx = np.random.randint(0, self.data_size - 1)
+                    idx = self.index[np.random.randint(0, self.data_size - 1)]
 
                 if self.num_points is not None:
                     pt_idxs = np.random.choice(self.points[idx].shape[0], self.num_points, replace=False)
@@ -203,6 +203,8 @@ class DatasetLoader:
                 batch_ids.append(np.repeat(i, len(points)))
                 points_batch.append(points)
                 labels_batch.append(labels)
+
+                self.cur_it = self.cur_it + 1
 
             if self.cur_it >= self.data_size:
                 self.cur_it = -1

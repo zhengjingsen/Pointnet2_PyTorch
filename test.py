@@ -40,19 +40,23 @@ args = parser.parse_args()
 # z = torch.linspace(0, 10, 11).int()
 # print(z)
 
-class MyNumbers:
-    def __iter__(self):
-        self.a = 1
-        return self
+# class MyNumbers:
+#     def __iter__(self):
+#         self.a = 1
+#         return self
+#
+#     def __next__(self):
+#         if self.a <= 20:
+#             x = self.a
+#             self.a += 1
+#             return x
+#         else:
+#             return -1
+#             raise StopIteration
+#
+# for num in iter(MyNumbers()):
+#     print(num)
 
-    def __next__(self):
-        if self.a <= 20:
-            x = self.a
-            self.a += 1
-            return x
-        else:
-            return -1
-            raise StopIteration
-
-for num in iter(MyNumbers()):
-    print(num)
+x = 1
+print(++x)
+print(x)

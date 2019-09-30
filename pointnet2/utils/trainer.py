@@ -129,7 +129,7 @@ class Trainer(object):
         count = 1.0
         for i, data in tqdm.tqdm(
                 enumerate(d_loader, 0),
-                total=len(d_loader),
+                total=d_loader.iter_num_per_epoch(),
                 leave=False,
                 desc='val'):
             self.optimizer.zero_grad()

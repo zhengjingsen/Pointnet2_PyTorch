@@ -140,7 +140,7 @@ class PointPillarsSem(nn.Module):
 
         score = self.conv1d_3(point)
 
-        return score
+        return score.permute(1, 0)
 
 def model_fn_decorator(criterion):
     ModelReturn = namedtuple("ModelReturn", ["preds", "loss", "acc"])
