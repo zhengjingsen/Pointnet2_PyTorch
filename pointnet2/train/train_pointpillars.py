@@ -160,9 +160,9 @@ if __name__ == "__main__":
 
     it = max(it, 0)  # for the initialize value of `trainer.train`
 
-    model_fn = model_fn_decorator(nn.CrossEntropyLoss())
-    # model_fn = model_fn_decorator(focal_loss.FocalLoss(class_num=2, alpha=torch.cuda.FloatTensor([1.0, 3.0]), \
-    #                                                    gamma=2))
+    # model_fn = model_fn_decorator(nn.CrossEntropyLoss())
+    model_fn = model_fn_decorator(focal_loss.FocalLoss(class_num=2, alpha=torch.cuda.FloatTensor([1.0, 3.0]), \
+                                                       gamma=2))
 
     if args.visdom:
         viz = pt_utils.VisdomViz(port=args.visdom_port)

@@ -79,7 +79,8 @@ class WaymoDatasetLoader(data.Dataset):
 
 
 class DatasetLoader:
-    def __init__(self, data_path, batch_size, num_points = None, augment = False,
+    def __init__(self, data_path, batch_size, training = True,
+                 num_points = None, augment = False,
                  min_range_x = -75, max_range_x = 75,
                  min_range_y = -75, max_range_y = 75,
                  min_range_z = -1,  max_range_z = 5,
@@ -87,6 +88,7 @@ class DatasetLoader:
                  max_shift_z = 0.1, max_rotation = 1):
         self.data_path = data_path
         self.batch_size = batch_size
+        self.training = training
         self.num_points = num_points
         self.augment = augment
 
@@ -114,7 +116,7 @@ class DatasetLoader:
         self.points = data_batchlist
         self.labels = label_batchlist
 
-    def data_augment(self, points, labels):
+    def data_augment(self, points, labels, pt_idxs):
         # 1) No ring information. Hence skipping ring based augmentation
 
         # 2) Add random noise [-rnd, rnd]
@@ -140,34 +142,38 @@ class DatasetLoader:
         rot_res = rotMat.apply(points[:, :3])
         points[:, :3] = rot_res
 
+        # Randomly shuffle the points & labels around to remove ordering dependance
+        p = np.random.permutation(len(points))
+        points = points[p]
+        labels = labels[p]
+        pt_idxs = pt_idxs[p]
+
+        return points, labels, pt_idxs
+
+    def normalize_pointcloud(self, points, labels, pt_idxs):
         # delete points outside range
         req_mask = (points[:, 0] > self.min_range_x) & (points[:, 0] < self.max_range_x) & (
                     points[:, 1] > self.min_range_y) & (points[:, 1] < self.max_range_y) & (
                     points[:, 2] > self.min_range_z) & (points[:, 2] < self.max_range_z)
         points = points[req_mask]
-        label = labels[req_mask]
+        labels = labels[req_mask]
+        pt_idxs = pt_idxs[req_mask]
 
         # normalize the x and y of scan to lie in [-1, 1]
         points[:, 0] = points[:, 0] / self.max_range_x
         points[:, 1] = points[:, 1] / self.max_range_y
         points[:, 2] = points[:, 2] / self.max_range_z
 
-        # Randomly shuffle the points & labels around to remove ordering dependance
-        p = np.random.permutation(len(points))
-        points = points[p]
-        labels = labels[p]
+        mean_z = np.mean(points[:, 2])
+        points[:, 2] = points[:, 2] - mean_z
 
-        return points, labels
+        return points, labels, pt_idxs
 
     def load_pointcloud(self, name):
         f = np.fromfile(name)
         f = f.reshape(-1, 4)
         data = f[:, :3]
         label = f[:, 3].astype(np.int64)
-
-        # center along z-axis first
-        mean_z = np.mean(data[:, 2])
-        data[:, 2] = data[:, 2] - mean_z
 
         return data, label
 
@@ -181,6 +187,7 @@ class DatasetLoader:
         if self.cur_it >= 0:
             batch_ids = []
             points_batch = []
+            origin_points_batch = []
             labels_batch = []
 
             for i in range(self.batch_size):
@@ -197,12 +204,15 @@ class DatasetLoader:
                 points = self.points[idx][pt_idxs, :].copy()
                 labels = self.labels[idx][pt_idxs].copy()
 
-                if self.augment:
-                    points, labels = self.data_augment(points, labels)
+                if self.training and self.augment:
+                    points, labels, pt_idxs = self.data_augment(points, labels, pt_idxs)
+                points, labels, pt_idxs = self.normalize_pointcloud(points, labels, pt_idxs)
 
                 batch_ids.append(np.repeat(i, len(points)))
                 points_batch.append(points)
                 labels_batch.append(labels)
+                if not self.training:
+                    origin_points_batch.append(self.points[idx][pt_idxs, :].copy())
 
                 self.cur_it = self.cur_it + 1
 
@@ -211,6 +221,7 @@ class DatasetLoader:
             return torch.from_numpy(np.hstack(batch_ids)), \
                    torch.from_numpy(np.concatenate(points_batch, axis=0)).type(torch.FloatTensor), \
                    torch.from_numpy(np.concatenate(labels_batch, axis=0)).type(torch.LongTensor), \
+                   None if self.training else np.concatenate(origin_points_batch, axis=0), \
                    self.batch_size
         else:
             raise StopIteration

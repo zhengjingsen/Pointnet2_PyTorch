@@ -147,7 +147,7 @@ def model_fn_decorator(criterion):
 
     def model_fn(model, data, epoch=0, eval=False):
         with torch.set_grad_enabled(not eval):
-            batch_ids, points, labels, batch_size = data
+            batch_ids, points, labels, origin_points, batch_size = data
 
             points = points.to("cuda", non_blocking=True).transpose(dim0=0, dim1=1)
             labels = labels.to("cuda", non_blocking=True)
